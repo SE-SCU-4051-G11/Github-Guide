@@ -20,6 +20,28 @@
 3. [Visualizing Git Branches](#3-visualizing-git-branches)
    - [Linear History vs. Branching History](#linear-history-vs-branching-history)
    - [The Role of `HEAD`](#the-role-of-head)
+4. [Essential Branching Commands & Operations](#4-essential-branching-commands--operations)
+   - [Creating Branches (`git branch`)](#creating-branches-git-branch)
+   - [Listing & Inspecting Branches (`git branch -a`, `-v`)](#listing--inspecting-branches-git-branch--a--v)
+   - [Switching Branches: The Legacy Way vs. The Modern Way](#switching-branches-the-legacy-way-vs-the-modern-way)
+     - [The Legacy Way: `git checkout`](#the-legacy-way-git-checkout)
+     - [The Modern Way: `git switch` (Git 2.23+)](#the-modern-way-git-switch-git-223)
+   - [Creating and Switching in One Step](#creating-and-switching-in-one-step)
+   - [Renaming Branches (`git branch -m`)](#renaming-branches-git-branch--m)
+   - [Deleting Branches (Local & Remote)](#deleting-branches-local--remote)
+5. [Team Branching Conventions & Strategies](#5-team-branching-conventions--strategies)
+   - [Branch Naming Standards](#branch-naming-standards)
+   - [Feature Branch Workflow](#feature-branch-workflow)
+6. [Step-by-Step Hands-on Practice Scenario](#6-step-by-step-hands-on-practice-scenario)
+   - [Phase 1: Syncing with Upstream](#phase-1-syncing-with-upstream)
+   - [Phase 2: Branch Creation and Work](#phase-2-branch-creation-and-work)
+   - [Phase 3: Making Meaningful Commits](#phase-3-making-meaningful-commits)
+   - [Phase 4: Publishing the Branch](#phase-4-publishing-the-branch)
+7. [Common Beginner Pitfalls & Troubleshooting](#7-common-beginner-pitfalls--troubleshooting)
+   - [Pitfall 1: Uncommitted Changes Blocking a Branch Switch](#pitfall-1-uncommitted-changes-blocking-a-branch-switch)
+   - [Pitfall 2: Accidental Commits on `main`](#pitfall-2-accidental-commits-on-main)
+   - [Pitfall 3: Detached HEAD State](#pitfall-3-detached-head-state)
+8. [Quick Reference Cheat Sheet](#8-quick-reference-cheat-sheet)
 
 ---
 
@@ -120,3 +142,320 @@ Git inspects `HEAD` to display an asterisk `*` next to your active branch:
 ```
 
 When `HEAD` points to a branch, any new commit you create moves that branch pointer forward, while `HEAD` stays attached to the branch tip.
+
+---
+
+## 4. Essential Branching Commands & Operations
+
+### Creating Branches (`git branch`)
+To create a new branch pointing to the current commit without immediately switching to it:
+
+```bash
+git branch <branch-name>
+```
+
+**Example:**
+```bash
+# Creates a branch called 'feature/student-profile' pointing to HEAD
+git branch feature/student-profile
+```
+
+### Listing & Inspecting Branches (`git branch -a`, `-v`)
+Git offers several flags to inspect local and remote branches:
+
+```bash
+# List local branches (* indicates the current active branch)
+git branch
+
+# List all branches including remote-tracking branches
+git branch -a
+
+# List branches with their latest commit hash and commit subject
+git branch -v
+
+# List branches that have already been merged into the current branch
+git branch --merged
+
+# List branches that still have unmerged changes
+git branch --no-merged
+```
+
+Sample output:
+```text
+  main                   e55ffcf Initial commit
+* feature/branching-guide 625a7c4 docs(branching): introduce core concepts
+  remotes/origin/main    e55ffcf Initial commit
+```
+
+### Switching Branches: The Legacy Way vs. The Modern Way
+
+#### The Legacy Way: `git checkout`
+Historically, `git checkout` was used for multiple unrelated operations: switching branches, creating branches, checking out individual files from older commits, and discarding working directory changes. Because overloaded commands cause student confusion, Git introduced dedicated commands in version 2.23+.
+
+```bash
+# Switch to an existing branch
+git checkout <branch-name>
+```
+
+#### The Modern Way: `git switch` (Git 2.23+)
+To improve user experience and clarity, Git 2.23 introduced `git switch` specifically dedicated to navigating branches:
+
+```bash
+# Switch to an existing branch (modern syntax)
+git switch <branch-name>
+```
+
+**Why prefer `git switch`?**
+- Safer: `git switch` cannot accidentally overwrite or discard files like `git checkout -- <file>` could.
+- Clear intent: Its only job is switching and creating branches.
+
+### Creating and Switching in One Step
+In daily development, developers rarely create a branch without wanting to work on it immediately. You can create and switch in a single command:
+
+**Modern syntax (Recommended):**
+```bash
+git switch -c <branch-name>
+```
+*(The `-c` flag stands for `--create`.)*
+
+**Classic syntax:**
+```bash
+git checkout -b <branch-name>
+```
+
+**Example:**
+```bash
+git switch -c feature/export-pdf
+# Output: Switched to a new branch 'feature/export-pdf'
+```
+
+### Renaming Branches (`git branch -m`)
+If you made a typo in your branch name or need to update it to follow team conventions:
+
+```bash
+# Rename the currently active branch
+git branch -m <new-branch-name>
+
+# Rename a specific branch from anywhere
+git branch -m <old-branch-name> <new-branch-name>
+```
+
+### Deleting Branches (Local & Remote)
+
+#### Safe Deletion (Local)
+Git protects you from accidentally losing unmerged work. The `-d` (lowercase) flag only deletes the branch if all of its commits have already been merged upstream:
+
+```bash
+git branch -d <branch-name>
+```
+
+#### Force Deletion (Local)
+If a feature branch was an experiment you intentionally want to discard, `-d` will warn you and refuse to delete it. Use `-D` (uppercase) to force deletion:
+
+```bash
+git branch -D <branch-name>
+```
+
+#### Deleting a Remote Branch
+When a Pull Request has merged on GitHub, the remote branch should be deleted to prevent repository clutter:
+
+```bash
+# Modern syntax
+git push origin --delete <branch-name>
+
+# Alternative legacy shorthand
+git push origin :<branch-name>
+```
+
+---
+
+## 5. Team Branching Conventions & Strategies
+
+### Branch Naming Standards
+Consistent branch naming keeps large team projects readable and organized. Teams prefix branch names with the type of work being performed:
+
+| Prefix | Usage | Example |
+| :--- | :--- | :--- |
+| `feature/` | New features or enhancements | `feature/oauth2-login` |
+| `bugfix/` | Fixing a bug reported in development | `bugfix/null-pointer-student-id` |
+| `hotfix/` | Urgent fixes applied directly to production | `hotfix/security-token-leak` |
+| `docs/` | Documentation additions or updates | `docs/branching-guide` |
+| `refactor/` | Code refactoring without changing functionality | `refactor/database-queries` |
+| `test/` | Adding or fixing test suites | `test/auth-unit-tests` |
+
+> **Pro Tip:** Include the GitHub Issue number in the branch name for automatic traceability:  
+> `feature/issue-4-branching-guide` or `docs/4-branching`
+
+### Feature Branch Workflow
+In student and enterprise teams alike, the **Feature Branch Workflow** is standard practice:
+1. `main` is always stable and ready for deployment.
+2. Every new feature or bugfix lives in its own dedicated branch.
+3. Developers push their feature branch to GitHub and create a Pull Request.
+4. Teammates review the code, suggest changes, and approve.
+5. The feature branch is merged into `main`, and the feature branch is deleted.
+
+```
+       [issue created]
+             │
+             ▼
+      git switch -c feature/auth
+             │
+             ▼
+   [make multiple commits]
+             │
+             ▼
+      git push origin feature/auth
+             │
+             ▼
+       [open Pull Request]
+             │
+             ▼
+   [peer review & approval]
+             │
+             ▼
+       [merge into main]
+```
+
+---
+
+## 6. Step-by-Step Hands-on Practice Scenario
+
+Follow this walkthrough to experience the complete branching lifecycle:
+
+### Phase 1: Syncing with Upstream
+Always make sure your local `main` has the latest commits from your teammates before branching:
+
+```bash
+# 1. Switch to main
+git switch main
+
+# 2. Fetch and pull latest changes
+git pull origin main
+```
+
+### Phase 2: Branch Creation and Work
+Create a dedicated branch for your task:
+
+```bash
+# 3. Create and switch to your feature branch
+git switch -c feature/calculator-ui
+
+# 4. Confirm you are on the new branch
+git status
+```
+
+### Phase 3: Making Meaningful Commits
+Do your work incrementally. A good rule of thumb is **one logical change per commit**:
+
+```bash
+# 5. Create or modify your code files
+# (e.g., editing calculator.py)
+
+# 6. Check the diff of your changes
+git diff
+
+# 7. Stage and commit the first logical milestone
+git add calculator.py
+git commit -m "feat(calc): implement basic arithmetic operators"
+
+# 8. Make a second modification (e.g., adding input validation)
+git add calculator.py
+git commit -m "feat(calc): add zero-division error handling"
+```
+
+### Phase 4: Publishing the Branch
+Push your branch to GitHub so your team can review your work:
+
+```bash
+# 9. Push to remote with upstream tracking (-u)
+git push -u origin feature/calculator-ui
+```
+*Note: The `-u` (or `--set-upstream`) flag links your local branch to the remote branch so future pushes/pulls only require `git push` or `git pull`.*
+
+---
+
+## 7. Common Beginner Pitfalls & Troubleshooting
+
+### Pitfall 1: Uncommitted Changes Blocking a Branch Switch
+**Symptom:** You try to switch branches, but Git throws an error:
+```text
+error: Your local changes to the following files would be overwritten by checkout:
+    app.js
+Please commit your changes or stash them before you switch branches.
+```
+
+**Solution:**
+You have two safe options:
+1. **Commit your changes:**
+   ```bash
+   git add app.js
+   git commit -m "wip: temporary progress on app"
+   git switch target-branch
+   ```
+2. **Stash your changes (shelve them temporarily):**
+   ```bash
+   # Save changes to stash
+   git stash
+   
+   # Switch to the other branch and do what you need
+   git switch target-branch
+   
+   # When you return to your branch, restore your changes:
+   git switch feature-branch
+   git stash pop
+   ```
+
+### Pitfall 2: Accidental Commits on `main`
+**Symptom:** You made 2 commits directly on `main` instead of creating a feature branch first!
+
+**Solution (Before pushing to remote):**
+```bash
+# 1. Create a new branch pointing to your current commits
+git branch feature/my-saved-work
+
+# 2. Reset local main back by 2 commits to match origin/main
+git reset --hard origin/main
+
+# 3. Switch to your new branch where your commits are safely preserved
+git switch feature/my-saved-work
+```
+
+### Pitfall 3: Detached HEAD State
+**Symptom:** Git displays:
+```text
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+```
+This happens when you check out a specific commit hash rather than a branch name.
+
+**Solution:**
+If you made commits while in detached HEAD state that you want to keep, create a new branch immediately:
+```bash
+git switch -c recovered-work
+```
+If you just want to return to safety:
+```bash
+git switch main
+```
+
+---
+
+## 8. Quick Reference Cheat Sheet
+
+| Task | Modern Command (Git 2.23+) | Classic Command |
+| :--- | :--- | :--- |
+| Create branch | `git branch <name>` | `git branch <name>` |
+| Switch branch | `git switch <name>` | `git checkout <name>` |
+| Create & switch | `git switch -c <name>` | `git checkout -b <name>` |
+| List local branches | `git branch` | `git branch` |
+| List all (incl. remote) | `git branch -a` | `git branch -a` |
+| Rename branch | `git branch -m <old> <new>` | `git branch -m <old> <new>` |
+| Delete merged branch | `git branch -d <name>` | `git branch -d <name>` |
+| Force delete branch | `git branch -D <name>` | `git branch -D <name>` |
+| Delete remote branch | `git push origin -d <name>` | `git push origin :<name>` |
+| Stash uncommitted work | `git stash` | `git stash` |
+| Restore stashed work | `git stash pop` | `git stash pop` |
+
+---
+*Created as part of the Software Engineering Git Guide Series for SCU.*
