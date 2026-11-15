@@ -1,26 +1,25 @@
-# Merge در Git
+# Merging in Git
 
-## Merge چیست؟
+## What is a merge?
 
-Merge یعنی ادغام تغییرات یک Branch در Branch دیگر. معمولاً بعد از تمام شدن کار روی یک Branch جداگانه، آن را به Branch اصلی (`main`) ادغام می‌کنیم.
+Merging means combining the changes of one branch into another branch. Usually, when our work on a separate branch is finished, we merge it into the main branch (`main`).
 
 ## Fast-forward
 
-وقتی Branch اصلی بعد از ساخت Branch جدید تغییری نکرده باشد، Git فقط اشاره‌گر `main` را جلو می‌برد و Commit جدیدی نمی‌سازد. تاریخچه خطی می‌ماند.
+If the main branch has not changed since the new branch was created, Git simply moves the `main` pointer forward and does not create a new commit. The history stays linear.
 
 ## Merge commit
 
-وقتی هر دو Branch بعد از جدا شدن Commit جدید داشته باشند، Git یک Commit جدید با دو والد می‌سازد که تاریخچه هر دو را نگه می‌دارد.
+If both branches have new commits after they diverged, Git creates a new commit with two parents. It keeps the history of both branches.
 
-## تفاوت این دو
+## Difference between the two
 
-- Fast-forward: Commit جدید نمی‌سازد و تاریخچه خطی است.
-- Merge commit: یک Commit جدید می‌سازد و مسیر هر Branch در تاریخچه دیده می‌شود.
+- Fast-forward: no new commit is created and the history is linear.
+- Merge commit: a new commit is created and the path of each branch stays visible in the history.
 
+## The git merge command
 
-## دستور git merge
-
-اول به Branch مقصد بروید، بعد Branch مبدأ را Merge کنید:
+First switch to the target branch, then merge the source branch into it:
 
 ```bash
 git checkout main
@@ -28,20 +27,20 @@ git pull origin main
 git merge docs/merging
 ```
 
-برای دیدن تاریخچه:
+To view the history:
 
 ```bash
 git log --oneline --graph --all
 ```
 
-## Merge از طریق Pull Request
+## Merging through a Pull Request
 
-در GitHub سه گزینه Merge وجود دارد:
+GitHub offers three merge options:
 
-- **Create a merge commit:** تاریخچه کامل حفظ می‌شود (در این پروژه از این گزینه استفاده می‌کنیم).
-- **Squash and merge:** همه Commitها یکی می‌شوند.
-- **Rebase and merge:** Commitها روی main دوباره چیده می‌شوند.
+- **Create a merge commit:** the full history is preserved (we use this option in this project).
+- **Squash and merge:** all commits are combined into one.
+- **Rebase and merge:** the commits are replayed on top of main.
 
-## Conflict چیست؟
+## What is a conflict?
 
-وقتی دو نفر یک خط از یک فایل را به دو شکل متفاوت تغییر می‌دهند، Git نمی‌داند کدام را نگه دارد و Conflict ایجاد می‌کند. حل آن دستی است.
+When two people change the same line of a file in two different ways, Git cannot decide which one to keep and reports a conflict. It has to be resolved manually.
